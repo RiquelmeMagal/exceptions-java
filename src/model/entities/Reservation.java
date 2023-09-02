@@ -4,20 +4,23 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import model.exceptions.DomainExceptions;
+
 public class Reservation {
+
     private Integer roomNumber;
     private Date checkIn;
     private Date checkOut;
 
-    private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy"); // "sfd" stands for "SimpleDateFormat
+    private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
-    public Reservation() {
-    }
-
-    public Reservation(Integer roomNumber, Date checkin, Date checkout) {
+    public Reservation(Integer roomNumber, Date checkIn, Date checkOut) {
+        if (!checkOut.after(checkIn)) {
+            throw new DomainExceptions("Check-out date must be after check-in date");
+        }
         this.roomNumber = roomNumber;
-        this.checkIn = checkin;
-        this.checkOut = checkout;
+        this.checkIn = checkIn;
+        this.checkOut = checkOut;
     }
 
     public Integer getRoomNumber() {
@@ -37,26 +40,20 @@ public class Reservation {
     }
 
     public long duration() {
-        long diff = checkOut.getTime() - checkIn.getTime(); // getTime() returns the number of milliseconds since
-        // January 1, 1970, 00:00:00 GMT represented by this Date
-        // object.
-        return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS); // convert the time difference to days
+        long diff = checkOut.getTime() - checkIn.getTime();
+        return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
     }
 
-    public String updateDates(Date checkIn, Date checkOut) {
-        
+    public void updateDates(Date checkIn, Date checkOut){
         Date now = new Date();
         if (checkIn.before(now) || checkOut.before(now)) {
-            return "Error in reservation: Reservation dates for update must be future dates";
+            throw new DomainExceptions("Reservation dates for update must be future dates");
         }
         if (!checkOut.after(checkIn)) {
-            return "Error in reservation: Check-out date must be after check-in date";
+            throw new DomainExceptions("Check-out date must be after check-in date");
         }
-        
         this.checkIn = checkIn;
         this.checkOut = checkOut;
-        
-        return null;
     }
 
     @Override
@@ -70,6 +67,5 @@ public class Reservation {
                 + ", "
                 + duration()
                 + " nights";
-
     }
 }
